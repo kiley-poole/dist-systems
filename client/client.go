@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/kiley-poole/dist-systems/utils"
@@ -20,24 +22,36 @@ func main() {
 	for {
 		cmd, err := gnureadline.Readline(fmt.Sprintln("\nEnter your selection: "), true)
 		utils.Check(err)
+		gnureadline.WriteHistory(HISTORY_FILE)
 
-		cmd = strings.TrimSuffix(cmd, "\n")
 		s := utils.HandleInput(cmd, " ")
-		cmd = strings.ToLower(s[0])
+		cmd2 := strings.ToLower(s[0])
 
-		if cmd == "exit" {
+		if cmd2 == "exit" {
 			utils.Exit()
 		}
 
-		if cmd != "get" && cmd != "set" {
+		if cmd2 != "get" && cmd2 != "set" {
 			fmt.Println("Invalid Command")
 			continue
 		}
-		fmt.Printf("%s\n", cmd)
-		gnureadline.WriteHistory(HISTORY_FILE)
+
+		sendCommand(cmd)
 	}
 }
 
 func printKV(k string, v string) {
 	fmt.Printf("\nKey: %s\nValue: %s\n", k, v)
+}
+
+func sendCommand(s string) {
+	conn, err := net.Dial("tcp", "localhost:9740")
+	utils.Check(err)
+
+	fmt.Fprintln(conn, s)
+
+	line, err := bufio.NewReader(conn).ReadString('\n')
+	utils.Check(err)
+
+	fmt.Printf("\n%s", string(line))
 }

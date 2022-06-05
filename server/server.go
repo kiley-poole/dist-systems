@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
+	"strings"
 
 	"github.com/kiley-poole/dist-systems/utils"
 )
@@ -12,6 +15,38 @@ import (
 var memMap = make(map[string]string, 0)
 
 func main() {
+	f := openFile()
+	l, err := net.Listen("tcp", ":9740")
+	utils.Check(err)
+
+	for {
+		buildMap(f)
+		conn, err := l.Accept()
+		if err != nil {
+			log.Println(err)
+		}
+		go handleCommand(conn, f)
+	}
+}
+
+func handleCommand(conn net.Conn, f *os.File) {
+	input, err := bufio.NewReader(conn).ReadString('\n')
+	utils.Check(err)
+
+	input = strings.TrimSuffix(input, "\n")
+	s := utils.HandleInput(input, " ")
+
+	cmd := strings.ToLower(s[0])
+	kv := s[1]
+
+	var res string
+	if cmd == "get" {
+		res = getValue(kv)
+	} else {
+		res = setValue(kv)
+		flush(f)
+	}
+	fmt.Fprintf(conn, "%s\n", res)
 
 }
 
@@ -38,14 +73,16 @@ func openFile() *os.File {
 	return file
 }
 
-func getValue(k string) {
+func getValue(k string) string {
 	if v, ok := memMap[k]; ok {
-		printKV(k, v)
-	} else {
-		fmt.Println("Key Not Found")
+		return v
 	}
+	return "Value Not Found"
+
 }
 
-func setValue(s string) {
+func setValue(s string) string {
+	kv := utils.HandleInput(s, "=")
 	memMap[kv[0]] = kv[1]
+	return "Value Set"
 }

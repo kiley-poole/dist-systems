@@ -1,28 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
+
+	"github.com/rocky/go-gnureadline"
 )
 
 var memMap = make(map[string]string, 0)
 
+const HISTORY_FILE string = "my.history"
+
 func main() {
-	go sigHandler()
+	gnureadline.ReadHistory(HISTORY_FILE)
+	gnureadline.StifleHistory(20)
+	gnureadline.ReadInitFile("/etc/inputrc")
+
 	fmt.Println("get {key} will fetch the value stored at the provided key")
 	fmt.Println("set {key}={value} will store the value stored at the provided key")
-	r := bufio.NewReader(os.Stdin)
 	f := openFile()
 	for {
-		fmt.Print("\nEnter your command:")
-
-		cmd, err := r.ReadString('\n')
+		cmd, err := gnureadline.Readline(fmt.Sprintln("\nEnter your selection: "), true)
 		check(err)
 
 		cmd = strings.TrimSuffix(cmd, "\n")
@@ -46,6 +47,7 @@ func main() {
 			setValue(s[1])
 			flush(f)
 		}
+		gnureadline.WriteHistory(HISTORY_FILE)
 	}
 }
 
@@ -94,16 +96,6 @@ func handleInput(cmd string, sep string) (parsedCmd []string) {
 	return strings.Split(cmd, sep)
 }
 
-func sigHandler() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT)
-	sig := <-sigs
-	switch sig {
-	case syscall.SIGINT:
-		exit()
-	}
-}
-
 func check(e error) {
 	if e != nil {
 		log.Fatal(e)
@@ -111,6 +103,7 @@ func check(e error) {
 }
 
 func exit() {
+	gnureadline.Rl_reset_terminal("")
 	fmt.Println("\nExiting Program")
 	os.Exit(0)
 }

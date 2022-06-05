@@ -1,9 +1,0 @@
-set 1=2
-get 1
-get 1
-set 1=2
-set 1=2
-set 1=2
-seup
-set 2=3
-get 1

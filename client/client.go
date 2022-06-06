@@ -44,7 +44,8 @@ func sendCommand(s string) {
 	conn, err := net.Dial("tcp", "localhost:9740")
 	utils.Check(err)
 
-	fmt.Fprintln(conn, s)
+	_, err = fmt.Fprintln(conn, s)
+	utils.Check(err)
 
 	line, err := bufio.NewReader(conn).ReadString('\n')
 	utils.Check(err)

@@ -63,14 +63,15 @@ func buildMap(f *os.File) {
 func flush(f *os.File) {
 	data, err := json.Marshal(memMap)
 	utils.Check(err)
-	os.WriteFile("db", data, 0644)
+
+	err = os.WriteFile("db", data, 0644)
+	utils.Check(err)
 }
 
 func openFile() *os.File {
 	file, err := os.OpenFile("db", os.O_RDWR|os.O_CREATE, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.Check(err)
+
 	return file
 }
 

@@ -34,7 +34,7 @@ func handleCommand(conn net.Conn, f *os.File) {
 	utils.Check(err)
 
 	input = strings.TrimSuffix(input, "\n")
-	s := utils.HandleInput(input, " ")
+	s := strings.SplitN(input, " ", 2)
 
 	cmd := strings.ToLower(s[0])
 	kv := s[1]
@@ -47,6 +47,7 @@ func handleCommand(conn net.Conn, f *os.File) {
 		flush(f)
 	}
 	fmt.Fprintf(conn, "%s\n", res)
+	conn.Close()
 
 }
 
@@ -82,7 +83,7 @@ func getValue(k string) string {
 }
 
 func setValue(s string) string {
-	kv := utils.HandleInput(s, "=")
-	memMap[kv[0]] = kv[1]
+	kv := strings.SplitN(s, "=", 2)
+	memMap[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
 	return "Value Set"
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/rocky/go-gnureadline"
 )
 
-const HISTORY_FILE string = "~/my.history"
+const HISTORY_FILE string = ""
 
 func main() {
 	gnureadline.ReadHistory(HISTORY_FILE)
@@ -22,26 +22,22 @@ func main() {
 	for {
 		cmd, err := gnureadline.Readline(fmt.Sprintln("\nEnter your selection: "), true)
 		utils.Check(err)
-		gnureadline.WriteHistory(HISTORY_FILE)
 
-		s := utils.HandleInput(cmd, " ")
-		cmd2 := strings.ToLower(s[0])
+		s := strings.SplitN(cmd, " ", 2)
+		cmdChk := strings.ToLower(s[0])
 
-		if cmd2 == "exit" {
+		if cmdChk == "exit" {
+			gnureadline.WriteHistory(HISTORY_FILE)
 			utils.Exit()
 		}
 
-		if cmd2 != "get" && cmd2 != "set" {
+		if cmdChk != "get" && cmdChk != "set" {
 			fmt.Println("Invalid Command")
 			continue
 		}
 
 		sendCommand(cmd)
 	}
-}
-
-func printKV(k string, v string) {
-	fmt.Printf("\nKey: %s\nValue: %s\n", k, v)
 }
 
 func sendCommand(s string) {
@@ -54,4 +50,5 @@ func sendCommand(s string) {
 	utils.Check(err)
 
 	fmt.Printf("\n%s", string(line))
+	conn.Close()
 }

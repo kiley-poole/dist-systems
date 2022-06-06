@@ -10,7 +10,7 @@ import (
 )
 
 func HandleInput(cmd string, sep string) (parsedCmd []string) {
-	return strings.Split(cmd, sep)
+	return strings.SplitN(cmd, sep, 2)
 }
 
 func Check(e error) {
